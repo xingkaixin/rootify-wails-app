@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import { Copy, Check, FileText, Settings } from "lucide-react";
 import * as GoAPI from "../wailsjs/go/main/App";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 
 interface WordRoot {
   chinese: string;
@@ -235,199 +243,200 @@ function RootManagement() {
     <div className="space-y-6">
       <div className="mb-6">
         <div className="flex gap-4">
-          <input
+          <Input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="搜索词根..."
-            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="flex-1"
           />
-          <button
+          <Button
             onClick={handleClearAll}
-            className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+            variant="destructive"
           >
             清空所有
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={handleExportCSV}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            variant="default"
           >
             导出CSV
-          </button>
-          <label className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer font-medium">
-            批量导入
-            <input
-              type="file"
-              accept=".csv"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-          </label>
+          </Button>
+          <Button asChild variant="default">
+            <label className="cursor-pointer">
+              批量导入
+              <input
+                type="file"
+                accept=".csv"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+            </label>
+          </Button>
         </div>
       </div>
 
       {/* 编辑对话框 */}
-      {editingRoot && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">✏️ 编辑词根</h3>
-            <div className="space-y-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">中文词根</label>
-                <input
-                  type="text"
-                  defaultValue={editingRoot.chinese}
-                  id="edit-chinese"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">英文对应</label>
-                <input
-                  type="text"
-                  defaultValue={editingRoot.english}
-                  id="edit-english"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
+      <Dialog open={!!editingRoot} onOpenChange={() => setEditingRoot(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>✏️ 编辑词根</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-chinese" className="mb-2">中文词根</Label>
+              <Input
+                type="text"
+                defaultValue={editingRoot?.chinese}
+                id="edit-chinese"
+              />
             </div>
-            <div className="flex gap-4 justify-end">
-              <button
-                onClick={() => setEditingRoot(null)}
-                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-              >
-                取消
-              </button>
-              <button
-                onClick={() => {
-                  const chineseInput = document.getElementById('edit-chinese') as HTMLInputElement;
-                  const englishInput = document.getElementById('edit-english') as HTMLInputElement;
-                  handleSaveEdit(chineseInput.value, englishInput.value);
-                }}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                保存
-              </button>
+            <div>
+              <Label htmlFor="edit-english" className="mb-2">英文对应</Label>
+              <Input
+                type="text"
+                defaultValue={editingRoot?.english}
+                id="edit-english"
+              />
             </div>
           </div>
-        </div>
-      )}
+          <DialogFooter>
+            <Button
+              onClick={() => setEditingRoot(null)}
+              variant="outline"
+            >
+              取消
+            </Button>
+            <Button
+              onClick={() => {
+                const chineseInput = document.getElementById('edit-chinese') as HTMLInputElement;
+                const englishInput = document.getElementById('edit-english') as HTMLInputElement;
+                if (editingRoot) {
+                  handleSaveEdit(chineseInput.value, englishInput.value);
+                }
+              }}
+              variant="default"
+            >
+              保存
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* 清空确认对话框 */}
-      {showClearConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">⚠️ 确认清空</h3>
-            <p className="text-sm text-gray-600 mb-6">
+      <Dialog open={showClearConfirm} onOpenChange={setShowClearConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>⚠️ 确认清空</DialogTitle>
+            <DialogDescription>
               确定要清空所有词根吗？此操作不可恢复。
-            </p>
-            <div className="flex gap-4 justify-end">
-              <button
-                onClick={() => setShowClearConfirm(false)}
-                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-              >
-                取消
-              </button>
-              <button
-                onClick={confirmClearAll}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                确认清空
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              onClick={() => setShowClearConfirm(false)}
+              variant="outline"
+            >
+              取消
+            </Button>
+            <Button
+              onClick={confirmClearAll}
+              variant="destructive"
+            >
+              确认清空
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* 导入预览对话框 */}
-      {showImportDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">📋 导入预览</h3>
-            <p className="text-sm text-gray-600 mb-4">发现 {importPreview.length} 个词根：</p>
-            
-            <div className="flex-1 overflow-y-auto border border-gray-200 rounded-lg mb-4">
-              <div className="grid grid-cols-3 bg-gray-50 border-b border-gray-200">
-                <div className="px-3 py-1.5 font-medium text-gray-900 border-r border-gray-200 text-sm">中文</div>
-                <div className="px-3 py-1.5 font-medium text-gray-900 border-r border-gray-200 text-sm">英文</div>
-                <div className="px-3 py-1.5 font-medium text-gray-900 text-sm">操作</div>
-              </div>
-              
-              {importPreview.map(({ chinese, english, action }, index) => (
-                <div key={index} className="grid grid-cols-3 border-b border-gray-100 last:border-b-0">
-                  <div className="px-3 py-1 border-r border-gray-200 font-medium text-sm">{chinese}</div>
-                  <div className="px-3 py-1 border-r border-gray-200 font-mono text-blue-600 text-sm">{english}</div>
-                  <div className="px-3 py-1">
-                    <span className={`px-2 py-0.5 text-xs rounded ${
-                      action === 'add' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {action === 'add' ? '新增' : '更新'}
-                    </span>
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>📋 导入预览</DialogTitle>
+            <DialogDescription>
+              发现 {importPreview.length} 个词根：
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-1/3">中文</TableHead>
+                  <TableHead className="w-1/3">英文</TableHead>
+                  <TableHead className="w-1/3">操作</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {importPreview.map(({ chinese, english, action }, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="font-medium">{chinese}</TableCell>
+                    <TableCell className="font-mono text-blue-600">{english}</TableCell>
+                    <TableCell>
+                      <Badge variant={action === 'add' ? 'default' : 'secondary'}>
+                        {action === 'add' ? '新增' : '更新'}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          <DialogFooter>
+            <Button
+              onClick={() => setShowImportDialog(false)}
+              variant="outline"
+            >
+              取消
+            </Button>
+            <Button
+              onClick={confirmImport}
+              variant="default"
+            >
+              确认导入
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[40%]">中文词根</TableHead>
+              <TableHead className="w-[40%]">英文对应</TableHead>
+              <TableHead className="w-[20%]">操作</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredRoots.map(([chinese, english]) => (
+              <TableRow key={chinese}>
+                <TableCell className="font-medium">{chinese}</TableCell>
+                <TableCell className="font-mono text-blue-600">{english}</TableCell>
+                <TableCell>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => handleEditRoot(chinese, english)}
+                      size="sm"
+                      variant="outline"
+                    >
+                      编辑
+                    </Button>
+                    <Button
+                      onClick={() => handleDeleteRoot(chinese)}
+                      size="sm"
+                      variant="destructive"
+                    >
+                      删除
+                    </Button>
                   </div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="flex gap-4 justify-end">
-              <button
-                onClick={() => setShowImportDialog(false)}
-                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-              >
-                取消
-              </button>
-              <button
-                onClick={confirmImport}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                确认导入
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div className="grid grid-cols-3 bg-gray-50 border-b border-gray-200">
-          <div className="px-4 py-3 font-medium text-gray-900 border-r border-gray-200">
-            中文词根
-          </div>
-          <div className="px-4 py-3 font-medium text-gray-900 border-r border-gray-200">英文对应</div>
-          <div className="px-4 py-3 font-medium text-gray-900">
-            操作
-          </div>
-        </div>
-
-        <div className="max-h-96 overflow-y-auto">
-          {filteredRoots.map(([chinese, english]) => {
-            return (
-              <div
-                key={chinese}
-                className="grid grid-cols-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 items-center"
-              >
-                <div className="px-4 py-3 border-r border-gray-200 font-medium text-gray-800">
-                  {chinese}
-                </div>
-                <div className="px-4 py-3 border-r border-gray-200 font-mono text-blue-600">{english}</div>
-                <div className="px-4 py-3 flex gap-2">
-                  <button
-                    onClick={() => handleEditRoot(chinese, english)}
-                    className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
-                  >
-                    编辑
-                  </button>
-                  <button
-                    onClick={() => handleDeleteRoot(chinese)}
-                    className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
-                  >
-                    删除
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
 
       <div className="text-sm text-gray-500 text-center">
@@ -596,28 +605,22 @@ function App() {
       <div className="flex h-[calc(100vh-73px)]">
         <nav className="w-64 bg-white border-r border-gray-200 p-6">
           <div className="space-y-2">
-            <button
+            <Button
               onClick={() => setActiveTab("translation")}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
-                activeTab === "translation"
-                  ? "bg-blue-50 text-blue-700 border border-blue-200"
-                  : "text-gray-700 hover:bg-gray-50"
-              }`}
+              variant={activeTab === "translation" ? "default" : "ghost"}
+              className="w-full justify-start"
             >
-              <FileText className="w-5 h-5" />
+              <FileText className="w-5 h-5 mr-3" />
               词根翻译
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => setActiveTab("management")}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
-                activeTab === "management"
-                  ? "bg-blue-50 text-blue-700 border border-blue-200"
-                  : "text-gray-700 hover:bg-gray-50"
-              }`}
+              variant={activeTab === "management" ? "default" : "ghost"}
+              className="w-full justify-start"
             >
-              <Settings className="w-5 h-5" />
+              <Settings className="w-5 h-5 mr-3" />
               词根管理
-            </button>
+            </Button>
           </div>
         </nav>
 
@@ -630,7 +633,7 @@ function App() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   输入中文字段名（支持单行或多行）
                 </label>
-                <textarea
+                <Textarea
                   value={unifiedInput}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleUnifiedInput(e.target.value)}
                   placeholder="输入中文字段名，每行一个：
@@ -639,86 +642,99 @@ function App() {
 信息来源
 存款金额
 取款金额"
-                  className="w-full h-32 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                  className="h-32 resize-none"
                 />
                 <div className="flex gap-4 mt-4">
-                  <button
+                  <Button
                     onClick={handleBatchTranslate}
                     disabled={tableData.length === 0}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+                    variant="default"
                   >
                     翻译
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={addRow}
-                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                    variant="default"
                   >
                     添加行
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={handleReset}
-                    className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
+                    variant="outline"
                   >
                     清空
-                  </button>
+                  </Button>
                 </div>
               </div>
 
               {tableData.length > 0 && (
-                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                  <div className="grid grid-cols-2 items-center px-4 py-3 bg-gray-50 border-b border-gray-200">
-                    <div className="px-4 py-3 font-medium text-gray-900 border-r border-gray-200">中文字段名</div>
-                    <div className="px-4 py-3 font-medium text-gray-900 flex justify-between items-center">
-                      <span>英文字段名</span>
-                      <button
-                        onClick={handleExportTSV}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
-                      >
-                        导出到剪贴板
-                      </button>
-                    </div>
+                <div className="rounded-md border">
+                  <div className="flex items-center justify-between p-4 border-b bg-muted/50">
+                    <div className="text-sm font-medium">翻译结果</div>
+                    <Button
+                      onClick={handleExportTSV}
+                      variant="default"
+                      size="sm"
+                    >
+                      导出到剪贴板
+                    </Button>
                   </div>
-
-                  {tableData.map((row, index) => (
-                    <div key={index} className="grid grid-cols-2 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 group">
-                      <div className="border-r border-gray-200 relative">
-                        <input
-                          type="text"
-                          value={row.chinese}
-                          onChange={(e) => handleTableEdit(index, e.target.value)}
-                          className="w-full px-4 py-3 border-0 bg-transparent focus:ring-2 focus:ring-blue-500 focus:ring-inset"
-                          placeholder="输入中文"
-                        />
-                        </div>
-                      <div className="relative flex items-center">
-                        <div className="px-4 py-3 pr-20 font-mono flex-1">
-                          <MixedTranslation chinese={row.chinese} />
-                        </div>
-                        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {row.english && (
-                            <button
-                              onClick={() => copyToClipboard(row.english, index)}
-                              className="p-1 hover:bg-gray-200 rounded transition-colors"
-                              title="复制"
-                            >
-                              {copiedIndex === index ? (
-                                <Check className="w-4 h-4 text-green-600" />
-                              ) : (
-                                <Copy className="w-4 h-4 text-gray-500" />
-                              )}
-                            </button>
-                          )}
-                          <button
-                            onClick={() => deleteRow(index)}
-                            className="p-1 hover:bg-red-100 rounded transition-colors text-red-500 font-bold"
-                            title="删除"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-1/2">中文字段名</TableHead>
+                        <TableHead className="w-1/2">英文字段名</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {tableData.map((row, index) => (
+                        <TableRow key={index} className="group">
+                          <TableCell>
+                            <Input
+                              type="text"
+                              value={row.chinese}
+                              onChange={(e) => handleTableEdit(index, e.target.value)}
+                              className="border-0 bg-transparent focus:ring-2 focus:ring-blue-500 focus:ring-inset"
+                              placeholder="输入中文"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <div className="relative flex items-center">
+                              <div className="font-mono flex-1">
+                                <MixedTranslation chinese={row.chinese} />
+                              </div>
+                              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                {row.english && (
+                                  <Button
+                                    onClick={() => copyToClipboard(row.english, index)}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0"
+                                    title="复制"
+                                  >
+                                    {copiedIndex === index ? (
+                                      <Check className="w-4 h-4 text-green-600" />
+                                    ) : (
+                                      <Copy className="w-4 h-4" />
+                                    )}
+                                  </Button>
+                                )}
+                                <Button
+                                  onClick={() => deleteRow(index)}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                                  title="删除"
+                                >
+                                  ×
+                                </Button>
+                              </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               )}
 
@@ -728,44 +744,44 @@ function App() {
                 
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">中文词语</label>
-                    <input
+                    <Label htmlFor="new-chinese" className="mb-2">中文词语</Label>
+                    <Input
                       type="text"
+                      id="new-chinese"
                       value={manualTranslations.newChinese || ""}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleNewChineseChange(e.target.value)}
                       placeholder="例如：证券、区块链、人工智能"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">英文翻译</label>
-                    <input
+                    <Label htmlFor="new-english" className="mb-2">英文翻译</Label>
+                    <Input
                       type="text"
+                      id="new-english"
                       value={manualTranslations.newEnglish || ""}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleNewEnglishChange(e.target.value)}
                       placeholder="例如：securities、blockchain、ai"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
                 </div>
                 
                 <div className="flex gap-4">
-                  <button
+                  <Button
                     onClick={() => {
                       handleAddCustomRoot(manualTranslations.newChinese || "", manualTranslations.newEnglish || "");
                       setManualTranslations(prev => ({ ...prev, newChinese: "", newEnglish: "" }));
                     }}
                     disabled={!manualTranslations.newChinese?.trim() || !manualTranslations.newEnglish?.trim()}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+                    variant="default"
                   >
                     添加词根
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => setManualTranslations(prev => ({ ...prev, newChinese: "", newEnglish: "" }))}
-                    className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
+                    variant="outline"
                   >
                     清空
-                  </button>
+                  </Button>
                 </div>
               </div>
 

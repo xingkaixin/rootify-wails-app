@@ -4,3 +4,4 @@ dist
 frontend/wailsjs
 *.db
 .claude
+.mcp.json

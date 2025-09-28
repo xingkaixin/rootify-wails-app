@@ -61,13 +61,13 @@ function MixedTranslation({ chinese }: { chinese: string }) {
         if (isMatched) {
           return (
             <span key={index} className="text-green-600">
-              {segment.english}
+              {segment.english}{index < segments.length - 1 && "_"}
             </span>
           );
         } else {
           return (
             <span key={index} className="text-red-600">
-              {segment.chinese}
+              {segment.chinese}{index < segments.length - 1 && "_"}
             </span>
           );
         }
@@ -692,7 +692,7 @@ function App() {
                         </div>
                       <div className="relative flex items-center">
                         <div className="px-4 py-3 pr-20 font-mono flex-1">
-                          <MixedTranslation chinese={row.english} />
+                          <MixedTranslation chinese={row.chinese} />
                         </div>
                         <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           {row.english && (

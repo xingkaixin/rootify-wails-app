@@ -30,10 +30,23 @@ func (a *App) GetAllRoots() (map[string]string, error)
 - `Promise<Record<string, string>>`: 词根映射对象，键为中文，值为英文
 - 错误时返回空对象 `{}`
 
-**调用示例** (前端 `App.tsx:18`):
+**调用示例** (前端 `services/api.ts`):
 ```typescript
-const roots = await GoAPI.GetAllRoots();
+const roots = await getAllRoots();
 // roots = { "交易": "trade", "日期": "date", ... }
+```
+
+**前端服务层封装** (`services/api.ts`):
+```typescript
+export async function getAllRoots(): Promise<Record<string, string>> {
+  try {
+    const roots = await GoAPI.GetAllRoots();
+    return roots || {};
+  } catch (error) {
+    console.error("Failed to load roots:", error);
+    return {};
+  }
+}
 ```
 
 **后端实现关键代码**:
@@ -66,9 +79,21 @@ func (a *App) AddRoot(chinese, english string) error
 - `Promise<void>` - 成功时无返回值
 - 错误时抛出异常
 
-**调用示例** (前端 `App.tsx:532`):
+**调用示例** (前端 `services/api.ts`):
 ```typescript
-await GoAPI.AddRoot("区块链", "blockchain");
+await addRoot("区块链", "blockchain");
+```
+
+**前端服务层封装** (`services/api.ts`):
+```typescript
+export async function addRoot(chinese: string, english: string): Promise<void> {
+  try {
+    await GoAPI.AddRoot(chinese.trim(), english.trim());
+  } catch (error) {
+    console.error("Failed to add root:", error);
+    throw error;
+  }
+}
 ```
 
 **后端实现关键代码**:
@@ -101,9 +126,21 @@ func (a *App) DeleteRoot(chinese string) error
 **返回值**:
 - `Promise<void>` - 成功时无返回值
 
-**调用示例** (前端 `App.tsx:176`):
+**调用示例** (前端 `services/api.ts`):
 ```typescript
-await GoAPI.DeleteRoot("区块链");
+await deleteRoot("区块链");
+```
+
+**前端服务层封装** (`services/api.ts`):
+```typescript
+export async function deleteRoot(chinese: string): Promise<void> {
+  try {
+    await GoAPI.DeleteRoot(chinese);
+  } catch (error) {
+    console.error("Failed to delete root:", error);
+    throw error;
+  }
+}
 ```
 
 **后端实现关键代码**:
@@ -132,9 +169,21 @@ func (a *App) ClearAllRoots() error
 **返回值**:
 - `Promise<void>` - 成功时无返回值
 
-**调用示例** (前端 `App.tsx:217`):
+**调用示例** (前端 `services/api.ts`):
 ```typescript
-await GoAPI.ClearAllRoots();
+await clearAllRoots();
+```
+
+**前端服务层封装** (`services/api.ts`):
+```typescript
+export async function clearAllRoots(): Promise<void> {
+  try {
+    await GoAPI.ClearAllRoots();
+  } catch (error) {
+    console.error("Failed to clear roots:", error);
+    throw error;
+  }
+}
 ```
 
 **后端实现关键代码**:
@@ -164,10 +213,22 @@ func (a *App) ImportRoots(roots map[string]string) error
 **返回值**:
 - `Promise<void>` - 成功时无返回值
 
-**调用示例** (前端 `App.tsx:232`):
+**调用示例** (前端 `services/api.ts`):
 ```typescript
 const rootsToImport = { "交易": "trade", "日期": "date" };
-await GoAPI.ImportRoots(rootsToImport);
+await importRoots(rootsToImport);
+```
+
+**前端服务层封装** (`services/api.ts`):
+```typescript
+export async function importRoots(roots: Record<string, string>): Promise<void> {
+  try {
+    await GoAPI.ImportRoots(roots);
+  } catch (error) {
+    console.error("Failed to import roots:", error);
+    throw error;
+  }
+}
 ```
 
 **后端实现关键代码**:
@@ -199,10 +260,23 @@ func (a *App) ExportRoots() (string, error)
 **返回值**:
 - `Promise<string>` - CSV格式的字符串
 
-**调用示例** (前端 `App.tsx:186`):
+**调用示例** (前端 `services/api.ts`):
 ```typescript
-const csvContent = await GoAPI.ExportRoots();
+const csvContent = await exportRoots();
 // csvContent = "中文词根,英文对应\n"交易","trade"\n"日期","date"\n"
+```
+
+**前端服务层封装** (`services/api.ts`):
+```typescript
+export async function exportRoots(): Promise<string> {
+  try {
+    const csvContent = await GoAPI.ExportRoots();
+    return csvContent || "中文词根,英文对应\n";
+  } catch (error) {
+    console.error("Failed to export roots:", error);
+    throw error;
+  }
+}
 ```
 
 **后端实现关键代码**:
@@ -247,13 +321,26 @@ interface SegmentationResult {
 }
 ```
 
-**调用示例** (前端 `App.tsx:40`):
+**调用示例** (前端 `services/api.ts`):
 ```typescript
-const segments = await GoAPI.SegmentText("交易日期");
+const segments = await segmentText("交易日期");
 // segments = [
 //   { chinese: "交易", english: "trade", isUnknown: false },
 //   { chinese: "日期", english: "date", isUnknown: false }
 // ]
+```
+
+**前端服务层封装** (`services/api.ts`):
+```typescript
+export async function segmentText(text: string): Promise<SegmentationResult[]> {
+  try {
+    const segments = await GoAPI.SegmentText(text);
+    return (segments || []) as SegmentationResult[];
+  } catch (error) {
+    console.error("Failed to segment text:", error);
+    return [];
+  }
+}
 ```
 
 **后端算法核心**:
@@ -283,10 +370,23 @@ func (a *App) TranslateText(text string) (string, error)
 **返回值**:
 - `Promise<string>` - 翻译后的英文字符串
 
-**调用示例** (前端 `App.tsx:501`):
+**调用示例** (前端 `services/api.ts`):
 ```typescript
-const translated = await GoAPI.TranslateText("交易日期");
+const translated = await translateText("交易日期");
 // translated = "trade_date"
+```
+
+**前端服务层封装** (`services/api.ts`):
+```typescript
+export async function translateText(text: string): Promise<string> {
+  try {
+    const translated = await GoAPI.TranslateText(text);
+    return translated || "";
+  } catch (error) {
+    console.error("Failed to translate text:", error);
+    return "";
+  }
+}
 ```
 
 **后端实现逻辑**:
@@ -384,5 +484,91 @@ interface SegmentationResult {
 - 使用驼峰命名法
 - 动词开头描述操作类型
 - 保持命名一致性
+
+## 前端服务层架构
+
+### 服务层设计原则
+
+#### 1. 统一错误处理
+所有API调用都包含错误处理逻辑：
+```typescript
+try {
+  return await GoAPI.Method();
+} catch (error) {
+  console.error("操作失败:", error);
+  // 返回默认值或抛出错误
+}
+```
+
+#### 2. 类型安全
+- 使用TypeScript类型定义确保类型安全
+- 对后端返回的数据进行类型断言
+- 提供统一的类型定义文件
+
+#### 3. 业务逻辑封装
+- 参数预处理（如trim操作）
+- 数据格式转换
+- 默认值处理
+
+### 服务层文件结构
+
+#### `services/api.ts` - API服务层
+```typescript
+// 词根管理API
+export async function getAllRoots(): Promise<Record<string, string>>;
+export async function addRoot(chinese: string, english: string): Promise<void>;
+export async function deleteRoot(chinese: string): Promise<void>;
+export async function clearAllRoots(): Promise<void>;
+export async function importRoots(roots: Record<string, string>): Promise<void>;
+export async function exportRoots(): Promise<string>;
+
+// 翻译功能API
+export async function segmentText(text: string): Promise<SegmentationResult[]>;
+export async function translateText(text: string): Promise<string>;
+```
+
+#### `services/csv.ts` - 文件处理工具
+```typescript
+// CSV解析和生成
+export function parseCSVContent(csvContent: string, existingRoots: Record<string, string>): ImportPreviewItem[];
+export function downloadCSVFile(csvContent: string, filename: string): void;
+
+// 剪贴板工具
+export async function copyToClipboard(text: string): Promise<boolean>;
+```
+
+### 组件调用模式
+
+#### 直接调用模式
+```typescript
+import { getAllRoots } from "../services/api";
+
+const roots = await getAllRoots();
+```
+
+#### Hook封装模式
+```typescript
+// hooks/useRoots.ts
+export function useRoots() {
+  const [allRoots, setAllRoots] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    getAllRoots().then(setAllRoots);
+  }, []);
+
+  return { allRoots, refreshRoots };
+}
+
+// 组件中使用
+const { allRoots, refreshRoots } = useRoots();
+```
+
+### 优势
+
+1. **代码复用**: 统一的服务层避免重复代码
+2. **易于维护**: 业务逻辑集中管理
+3. **类型安全**: 完整的TypeScript支持
+4. **错误处理**: 统一的错误处理机制
+5. **测试友好**: 服务层易于单元测试
 
 这个API接口说明文档为开发者提供了完整的接口参考，包括每个接口的功能、参数、返回值和实现细节。

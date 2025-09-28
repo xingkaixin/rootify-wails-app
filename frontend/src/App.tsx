@@ -1,12 +1,36 @@
 import { useState, useEffect } from "react";
-import { Copy, Check, FileText, Settings } from "lucide-react";
+import {
+  Copy,
+  Check,
+  Languages,
+  ChartNoAxesGantt,
+  FilePlus2,
+  RotateCcw,
+  ClipboardList,
+  Activity,
+  FileDown,
+  FileUp,
+} from "lucide-react";
 import * as GoAPI from "../wailsjs/go/main/App";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 
@@ -41,7 +65,6 @@ async function segmentText(text: string): Promise<SegmentationResult[]> {
   }
 }
 
-
 function MixedTranslation({ chinese }: { chinese: string }) {
   const [segments, setSegments] = useState<SegmentationResult[]>([]);
 
@@ -69,13 +92,15 @@ function MixedTranslation({ chinese }: { chinese: string }) {
         if (isMatched) {
           return (
             <span key={index} className="text-green-600">
-              {segment.english}{index < segments.length - 1 && "_"}
+              {segment.english}
+              {index < segments.length - 1 && "_"}
             </span>
           );
         } else {
           return (
             <span key={index} className="text-red-600">
-              {segment.chinese}{index < segments.length - 1 && "_"}
+              {segment.chinese}
+              {index < segments.length - 1 && "_"}
             </span>
           );
         }
@@ -84,13 +109,17 @@ function MixedTranslation({ chinese }: { chinese: string }) {
   );
 }
 
-
 function RootManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
-  const [importPreview, setImportPreview] = useState<Array<{chinese: string, english: string, action: 'add' | 'update'}>>([]);
-  const [editingRoot, setEditingRoot] = useState<{chinese: string, english: string} | null>(null);
+  const [importPreview, setImportPreview] = useState<
+    Array<{ chinese: string; english: string; action: "add" | "update" }>
+  >([]);
+  const [editingRoot, setEditingRoot] = useState<{
+    chinese: string;
+    english: string;
+  } | null>(null);
   const [allRoots, setAllRoots] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -110,30 +139,37 @@ function RootManagement() {
   };
 
   const parseCSVAndPreview = (csvContent: string) => {
-    const lines = csvContent.trim().split('\n');
+    const lines = csvContent.trim().split("\n");
     if (lines.length < 2) return; // 至少需要标题行+一行数据
 
     // 跳过第一行标题，从第二行开始处理
-    const preview: Array<{chinese: string, english: string, action: 'add' | 'update'}> = [];
-    
-    for (let i = 1; i < lines.length; i++) { // 从1开始，跳过标题行
-      const line = lines[i];
-      if (!line || line.trim() === '') continue; // 跳过空行
+    const preview: Array<{
+      chinese: string;
+      english: string;
+      action: "add" | "update";
+    }> = [];
 
-      const columns = line.split(',').map(col => col.trim().replace(/^"|"$/g, '')); // 去掉双引号
+    for (let i = 1; i < lines.length; i++) {
+      // 从1开始，跳过标题行
+      const line = lines[i];
+      if (!line || line.trim() === "") continue; // 跳过空行
+
+      const columns = line
+        .split(",")
+        .map((col) => col.trim().replace(/^"|"$/g, "")); // 去掉双引号
       if (columns.length >= 2) {
         const chinese = columns[0];
         const english = columns[1];
 
         if (chinese && english) {
-          const action = allRoots[chinese] ? 'update' : 'add';
+          const action = allRoots[chinese] ? "update" : "add";
           preview.push({ chinese, english, action });
         }
       }
     }
 
     if (preview.length === 0) {
-      alert('CSV格式错误：需要至少两列数据（中文词根,英文对应）');
+      alert("CSV格式错误：需要至少两列数据（中文词根,英文对应）");
       return;
     }
 
@@ -182,19 +218,22 @@ function RootManagement() {
       const csvContent = await GoAPI.ExportRoots();
 
       if (!csvContent || csvContent === "中文词根,英文对应\n") {
-        alert('没有词根数据可导出');
+        alert("没有词根数据可导出");
         return;
       }
 
       // 创建Blob对象
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
 
       // 创建下载链接
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `词根库_${new Date().toISOString().slice(0, 10)}.csv`);
-      link.style.visibility = 'hidden';
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `词根库_${new Date().toISOString().slice(0, 10)}.csv`
+      );
+      link.style.visibility = "hidden";
 
       document.body.appendChild(link);
       link.click();
@@ -204,7 +243,7 @@ function RootManagement() {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Failed to export roots:", error);
-      alert('导出失败');
+      alert("导出失败");
     }
   };
 
@@ -250,21 +289,18 @@ function RootManagement() {
             placeholder="搜索词根..."
             className="flex-1"
           />
-          <Button
-            onClick={handleClearAll}
-            variant="destructive"
-          >
-            清空所有
+          <Button onClick={handleClearAll} variant="destructive">
+            <RotateCcw className="w-4 h-4 mr-2" />
+            清空
           </Button>
-          <Button
-            onClick={handleExportCSV}
-            variant="default"
-          >
-            导出CSV
+          <Button onClick={handleExportCSV} variant="default">
+            <FileDown className="w-4 h-4 mr-2" />
+            导出
           </Button>
           <Button asChild variant="default">
-            <label className="cursor-pointer">
-              批量导入
+            <label className="cursor-pointer flex items-center">
+              <FileUp className="w-4 h-4 mr-2" />
+              导入
               <input
                 type="file"
                 accept=".csv"
@@ -284,7 +320,9 @@ function RootManagement() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="edit-chinese" className="mb-2">中文词根</Label>
+              <Label htmlFor="edit-chinese" className="mb-2">
+                中文词根
+              </Label>
               <Input
                 type="text"
                 defaultValue={editingRoot?.chinese}
@@ -292,7 +330,9 @@ function RootManagement() {
               />
             </div>
             <div>
-              <Label htmlFor="edit-english" className="mb-2">英文对应</Label>
+              <Label htmlFor="edit-english" className="mb-2">
+                英文对应
+              </Label>
               <Input
                 type="text"
                 defaultValue={editingRoot?.english}
@@ -301,16 +341,17 @@ function RootManagement() {
             </div>
           </div>
           <DialogFooter>
-            <Button
-              onClick={() => setEditingRoot(null)}
-              variant="outline"
-            >
+            <Button onClick={() => setEditingRoot(null)} variant="outline">
               取消
             </Button>
             <Button
               onClick={() => {
-                const chineseInput = document.getElementById('edit-chinese') as HTMLInputElement;
-                const englishInput = document.getElementById('edit-english') as HTMLInputElement;
+                const chineseInput = document.getElementById(
+                  "edit-chinese"
+                ) as HTMLInputElement;
+                const englishInput = document.getElementById(
+                  "edit-english"
+                ) as HTMLInputElement;
                 if (editingRoot) {
                   handleSaveEdit(chineseInput.value, englishInput.value);
                 }
@@ -339,10 +380,7 @@ function RootManagement() {
             >
               取消
             </Button>
-            <Button
-              onClick={confirmClearAll}
-              variant="destructive"
-            >
+            <Button onClick={confirmClearAll} variant="destructive">
               确认清空
             </Button>
           </DialogFooter>
@@ -372,10 +410,14 @@ function RootManagement() {
                 {importPreview.map(({ chinese, english, action }, index) => (
                   <TableRow key={index}>
                     <TableCell className="font-medium">{chinese}</TableCell>
-                    <TableCell className="font-mono text-blue-600">{english}</TableCell>
+                    <TableCell className="font-mono text-blue-600">
+                      {english}
+                    </TableCell>
                     <TableCell>
-                      <Badge variant={action === 'add' ? 'default' : 'secondary'}>
-                        {action === 'add' ? '新增' : '更新'}
+                      <Badge
+                        variant={action === "add" ? "default" : "secondary"}
+                      >
+                        {action === "add" ? "新增" : "更新"}
                       </Badge>
                     </TableCell>
                   </TableRow>
@@ -391,10 +433,7 @@ function RootManagement() {
             >
               取消
             </Button>
-            <Button
-              onClick={confirmImport}
-              variant="default"
-            >
+            <Button onClick={confirmImport} variant="default">
               确认导入
             </Button>
           </DialogFooter>
@@ -414,7 +453,9 @@ function RootManagement() {
             {filteredRoots.map(([chinese, english]) => (
               <TableRow key={chinese}>
                 <TableCell className="font-medium">{chinese}</TableCell>
-                <TableCell className="font-mono text-blue-600">{english}</TableCell>
+                <TableCell className="font-mono text-blue-600">
+                  {english}
+                </TableCell>
                 <TableCell>
                   <div className="flex gap-2">
                     <Button
@@ -456,18 +497,23 @@ function App() {
     Array<{ chinese: string; english: string }>
   >([]);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const [manualTranslations, setManualTranslations] = useState<Record<string, string>>({});
+  const [manualTranslations, setManualTranslations] = useState<
+    Record<string, string>
+  >({});
 
   useEffect(() => {
-    setVersion(import.meta.env.VITE_APP_VERSION || '1.0.0');
+    setVersion(import.meta.env.VITE_APP_VERSION || "1.0.0");
   }, []);
 
   const handleUnifiedInput = (value: string) => {
     setUnifiedInput(value);
-    
+
     if (value.trim()) {
-      const lines = value.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-      const newData = lines.map(line => ({ chinese: line, english: "" }));
+      const lines = value
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
+      const newData = lines.map((line) => ({ chinese: line, english: "" }));
       setTableData(newData);
     } else {
       setTableData([]);
@@ -503,7 +549,7 @@ function App() {
             const translated = await GoAPI.TranslateText(row.chinese);
             return {
               ...row,
-              english: translated
+              english: translated,
             };
           }
           return row;
@@ -540,7 +586,7 @@ function App() {
               const translated = await GoAPI.TranslateText(row.chinese);
               return {
                 ...row,
-                english: translated
+                english: translated,
               };
             }
             return row;
@@ -556,41 +602,43 @@ function App() {
 
   const handleExportTSV = async () => {
     if (tableData.length === 0) {
-      alert('没有数据可导出');
+      alert("没有数据可导出");
       return;
     }
 
     // 创建TSV内容：中文\t英文\n
-    const tsvContent = tableData.map(row => `${row.chinese}\t${row.english}`).join('\n');
+    const tsvContent = tableData
+      .map((row) => `${row.chinese}\t${row.english}`)
+      .join("\n");
     const fullContent = `中文\t英文\n${tsvContent}`;
 
     try {
       // 使用现代的Clipboard API
       if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(fullContent);
-        alert('已复制到剪贴板，可直接粘贴到Excel中');
+        alert("已复制到剪贴板，可直接粘贴到Excel中");
       } else {
         // 降级方案：使用document.execCommand
-        const textArea = document.createElement('textarea');
+        const textArea = document.createElement("textarea");
         textArea.value = fullContent;
         document.body.appendChild(textArea);
         textArea.select();
-        document.execCommand('copy');
+        document.execCommand("copy");
         document.body.removeChild(textArea);
-        alert('已复制到剪贴板，可直接粘贴到Excel中');
+        alert("已复制到剪贴板，可直接粘贴到Excel中");
       }
     } catch (error) {
-      console.error('复制失败:', error);
-      alert('复制失败，请手动复制数据');
+      console.error("复制失败:", error);
+      alert("复制失败，请手动复制数据");
     }
   };
 
   const handleNewChineseChange = (value: string) => {
-    setManualTranslations(prev => ({ ...prev, newChinese: value }));
+    setManualTranslations((prev) => ({ ...prev, newChinese: value }));
   };
 
   const handleNewEnglishChange = (value: string) => {
-    setManualTranslations(prev => ({ ...prev, newEnglish: value }));
+    setManualTranslations((prev) => ({ ...prev, newEnglish: value }));
   };
 
   return (
@@ -598,7 +646,9 @@ function App() {
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="relative inline-block">
           <h1 className="text-2xl font-bold text-gray-900">金融词根翻译系统</h1>
-          <span className="absolute bottom-0 right-0 text-sm text-gray-500 transform translate-x-full ml-2">v{version}</span>
+          <span className="absolute bottom-0 right-0 text-sm text-gray-500 transform translate-x-full ml-2">
+            v{version}
+          </span>
         </div>
       </header>
 
@@ -610,7 +660,7 @@ function App() {
               variant={activeTab === "translation" ? "default" : "ghost"}
               className="w-full justify-start"
             >
-              <FileText className="w-5 h-5 mr-3" />
+              <Languages className="w-5 h-5 mr-3" />
               词根翻译
             </Button>
             <Button
@@ -618,7 +668,7 @@ function App() {
               variant={activeTab === "management" ? "default" : "ghost"}
               className="w-full justify-start"
             >
-              <Settings className="w-5 h-5 mr-3" />
+              <ChartNoAxesGantt className="w-5 h-5 mr-3" />
               词根管理
             </Button>
           </div>
@@ -627,15 +677,19 @@ function App() {
         <main className="flex-1 p-6 overflow-auto">
           {activeTab === "translation" && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">词根翻译</h2>
-              
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                词根翻译
+              </h2>
+
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   输入中文字段名（支持单行或多行）
                 </label>
                 <Textarea
                   value={unifiedInput}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleUnifiedInput(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                    handleUnifiedInput(e.target.value)
+                  }
                   placeholder="输入中文字段名，每行一个：
 交易日期
 时间戳
@@ -650,18 +704,15 @@ function App() {
                     disabled={tableData.length === 0}
                     variant="default"
                   >
+                    <Languages className="w-4 h-4 mr-2" />
                     翻译
                   </Button>
-                  <Button
-                    onClick={addRow}
-                    variant="default"
-                  >
+                  <Button onClick={addRow} variant="default">
+                    <FilePlus2 className="w-4 h-4 mr-2" />
                     添加行
                   </Button>
-                  <Button
-                    onClick={handleReset}
-                    variant="outline"
-                  >
+                  <Button onClick={handleReset} variant="outline">
+                    <RotateCcw className="w-4 h-4 mr-2" />
                     清空
                   </Button>
                 </div>
@@ -676,7 +727,8 @@ function App() {
                       variant="default"
                       size="sm"
                     >
-                      导出到剪贴板
+                      <ClipboardList className="w-4 h-4 mr-2" />
+                      复制到剪贴板
                     </Button>
                   </div>
                   <Table>
@@ -693,7 +745,9 @@ function App() {
                             <Input
                               type="text"
                               value={row.chinese}
-                              onChange={(e) => handleTableEdit(index, e.target.value)}
+                              onChange={(e) =>
+                                handleTableEdit(index, e.target.value)
+                              }
                               className="border-0 bg-transparent focus:ring-2 focus:ring-blue-500 focus:ring-inset"
                               placeholder="输入中文"
                             />
@@ -706,7 +760,9 @@ function App() {
                               <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 {row.english && (
                                   <Button
-                                    onClick={() => copyToClipboard(row.english, index)}
+                                    onClick={() =>
+                                      copyToClipboard(row.english, index)
+                                    }
                                     variant="ghost"
                                     size="sm"
                                     className="h-8 w-8 p-0"
@@ -739,52 +795,81 @@ function App() {
               )}
 
               <div className="bg-white rounded-lg border border-gray-200 p-6 mt-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">➕ 添加自定义词根</h3>
-                <p className="text-sm text-gray-600 mb-4">用户判断：什么是一个完整的词根？输入中文词语和对应的英文翻译：</p>
-                
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  ➕ 添加自定义词根
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  用户判断：什么是一个完整的词根？输入中文词语和对应的英文翻译：
+                </p>
+
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <Label htmlFor="new-chinese" className="mb-2">中文词语</Label>
+                    <Label htmlFor="new-chinese" className="mb-2">
+                      中文词语
+                    </Label>
                     <Input
                       type="text"
                       id="new-chinese"
                       value={manualTranslations.newChinese || ""}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleNewChineseChange(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        handleNewChineseChange(e.target.value)
+                      }
                       placeholder="例如：证券、区块链、人工智能"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="new-english" className="mb-2">英文翻译</Label>
+                    <Label htmlFor="new-english" className="mb-2">
+                      英文翻译
+                    </Label>
                     <Input
                       type="text"
                       id="new-english"
                       value={manualTranslations.newEnglish || ""}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleNewEnglishChange(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        handleNewEnglishChange(e.target.value)
+                      }
                       placeholder="例如：securities、blockchain、ai"
                     />
                   </div>
                 </div>
-                
+
                 <div className="flex gap-4">
                   <Button
                     onClick={() => {
-                      handleAddCustomRoot(manualTranslations.newChinese || "", manualTranslations.newEnglish || "");
-                      setManualTranslations(prev => ({ ...prev, newChinese: "", newEnglish: "" }));
+                      handleAddCustomRoot(
+                        manualTranslations.newChinese || "",
+                        manualTranslations.newEnglish || ""
+                      );
+                      setManualTranslations((prev) => ({
+                        ...prev,
+                        newChinese: "",
+                        newEnglish: "",
+                      }));
                     }}
-                    disabled={!manualTranslations.newChinese?.trim() || !manualTranslations.newEnglish?.trim()}
+                    disabled={
+                      !manualTranslations.newChinese?.trim() ||
+                      !manualTranslations.newEnglish?.trim()
+                    }
                     variant="default"
                   >
+                    <Activity className="w-4 h-4 mr-2" />
                     添加词根
                   </Button>
                   <Button
-                    onClick={() => setManualTranslations(prev => ({ ...prev, newChinese: "", newEnglish: "" }))}
+                    onClick={() =>
+                      setManualTranslations((prev) => ({
+                        ...prev,
+                        newChinese: "",
+                        newEnglish: "",
+                      }))
+                    }
                     variant="outline"
                   >
+                    <RotateCcw className="w-4 h-4 mr-2" />
                     清空
                   </Button>
                 </div>
               </div>
-
             </div>
           )}
 

@@ -13,7 +13,7 @@ interface SegmentationResult {
   isUnknown?: boolean;
 }
 
-async function loadCustomRoots(): Promise<Record<string, string>> {
+async function getAllRoots(): Promise<Record<string, string>> {
   try {
     const roots = await GoAPI.GetAllRoots();
     return roots || {};
@@ -23,31 +23,16 @@ async function loadCustomRoots(): Promise<Record<string, string>> {
   }
 }
 
-async function saveCustomRoots(customRoots: Record<string, string>) {
-  try {
-    await GoAPI.ImportRoots(customRoots);
-  } catch (error) {
-    console.error("Failed to save roots:", error);
-  }
-}
-
-async function getAllRoots(): Promise<Record<string, string>> {
-  return await loadCustomRoots();
-}
-
 async function segmentText(text: string): Promise<SegmentationResult[]> {
   try {
     const segments = await GoAPI.SegmentText(text);
-    return segments || [];
+    return (segments || []) as SegmentationResult[];
   } catch (error) {
     console.error("Failed to segment text:", error);
     return [];
   }
 }
 
-function isTranslationComplete(english: string): boolean {
-  return english.trim() !== "" && !english.includes("_");
-}
 
 function MixedTranslation({ chinese }: { chinese: string }) {
   const [segments, setSegments] = useState<SegmentationResult[]>([]);
@@ -109,7 +94,7 @@ function RootManagement() {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = (e: ProgressEvent<FileReader>) => {
       const csvContent = e.target?.result as string;
       parseCSVAndPreview(csvContent);
     };
@@ -124,11 +109,14 @@ function RootManagement() {
     const preview: Array<{chinese: string, english: string, action: 'add' | 'update'}> = [];
     
     for (let i = 1; i < lines.length; i++) { // 从1开始，跳过标题行
-      const columns = lines[i].split(',').map(col => col.trim().replace(/^"|"$/g, '')); // 去掉双引号
+      const line = lines[i];
+      if (!line || line.trim() === '') continue; // 跳过空行
+
+      const columns = line.split(',').map(col => col.trim().replace(/^"|"$/g, '')); // 去掉双引号
       if (columns.length >= 2) {
         const chinese = columns[0];
         const english = columns[1];
-        
+
         if (chinese && english) {
           const action = allRoots[chinese] ? 'update' : 'add';
           preview.push({ chinese, english, action });
@@ -478,9 +466,14 @@ function App() {
   };
 
   const handleTableEdit = (index: number, chinese: string) => {
+    if (index < 0 || index >= tableData.length) return;
+
     const newData = [...tableData];
-    newData[index].chinese = chinese;
-    newData[index].english = "";
+    const row = newData[index];
+    if (!row) return;
+
+    row.chinese = chinese;
+    row.english = "";
     setTableData(newData);
   };
 

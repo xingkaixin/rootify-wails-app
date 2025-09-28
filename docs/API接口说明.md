@@ -10,7 +10,7 @@
 
 #### 1.1 GetAllRoots - 获取所有词根
 
-**文件位置**: `app.go:68-92`
+**文件位置**: `app.go`
 
 **TypeScript定义**: `frontend/wailsjs/go/main/App.d.ts:12`
 ```typescript
@@ -44,7 +44,7 @@ rows, err := a.db.Query("SELECT chinese, english FROM word_roots ORDER BY chines
 
 #### 1.2 AddRoot - 添加/更新词根
 
-**文件位置**: `app.go:95-112`
+**文件位置**: `app.go`
 
 **TypeScript定义**: `frontend/wailsjs/go/main/App.d.ts:4`
 ```typescript
@@ -81,7 +81,7 @@ _, err := a.db.Exec(
 
 #### 1.3 DeleteRoot - 删除词根
 
-**文件位置**: `app.go:115-129`
+**文件位置**: `app.go`
 
 **TypeScript定义**: `frontend/wailsjs/go/main/App.d.ts:8`
 ```typescript
@@ -113,7 +113,7 @@ _, err := a.db.Exec("DELETE FROM word_roots WHERE chinese = ?", chinese)
 
 #### 1.4 ClearAllRoots - 清空所有词根
 
-**文件位置**: `app.go:132-146`
+**文件位置**: `app.go`
 
 **TypeScript定义**: `frontend/wailsjs/go/main/App.d.ts:6`
 ```typescript
@@ -144,7 +144,7 @@ _, err := a.db.Exec("DELETE FROM word_roots")
 
 #### 1.5 ImportRoots - 批量导入词根
 
-**文件位置**: `app.go:149-177`
+**文件位置**: `app.go`
 
 **TypeScript定义**: `frontend/wailsjs/go/main/App.d.ts:14`
 ```typescript
@@ -180,7 +180,7 @@ return tx.Commit()
 
 #### 1.6 ExportRoots - 导出词根为CSV
 
-**文件位置**: `app.go:180-206`
+**文件位置**: `app.go`
 
 **TypeScript定义**: `frontend/wailsjs/go/main/App.d.ts:10`
 ```typescript
@@ -218,7 +218,7 @@ for rows.Next() {
 
 #### 2.1 SegmentText - 文本分词
 
-**文件位置**: `app.go:209-253`
+**文件位置**: `app.go`
 
 **TypeScript定义**: `frontend/wailsjs/go/main/App.d.ts:16`
 ```typescript
@@ -263,7 +263,7 @@ const segments = await GoAPI.SegmentText("交易日期");
 
 #### 2.2 TranslateText - 文本翻译
 
-**文件位置**: `app.go:256-278`
+**文件位置**: `app.go`
 
 **TypeScript定义**: `frontend/wailsjs/go/main/App.d.ts:18`
 ```typescript
@@ -298,7 +298,7 @@ const translated = await GoAPI.TranslateText("交易日期");
 
 #### 3.1 startup - 应用启动初始化
 
-**文件位置**: `app.go:29-32`
+**文件位置**: `app.go`
 
 **功能描述**: 应用启动时自动调用，用于初始化数据库连接。
 

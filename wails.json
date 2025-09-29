@@ -11,6 +11,12 @@
     "name": "XingKaiXin",
     "email": "xingkaixin@gmail.com"
   },
+  "info": {
+    "productName": "金融词根翻译器",
+    "productVersion": "1.0.1",
+    "copyright": "Copyright © 2024 XingKaiXin",
+    "comments": "金融词根翻译工具"
+  },
   "platforms": ["darwin/amd64", "darwin/arm64", "windows/amd64"],
   "outputType": "archive",
   "buildDirectory": "./build"

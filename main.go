@@ -17,7 +17,7 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:  "金融词根翻译器",
+		Title:  "金融词根翻译器 v1.0.1",
 		Width:  1024,
 		Height: 768,
 		AssetServer: &assetserver.Options{

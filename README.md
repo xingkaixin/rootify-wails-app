@@ -20,49 +20,26 @@
 
 ### 快速构建
 
-#### 方法一：使用构建脚本（推荐）
-
-**macOS/Linux:**
-```bash
-./build.sh
-```
-
-**Windows:**
-```cmd
-build-windows.bat
-```
-
-#### 方法二：手动构建
 
 1. 安装前端依赖：
 ```bash
-cd frontend && bun install && cd ..
+make deps
 ```
 
 2. 构建所有平台：
 ```bash
-wails build -platform all
+make clean
+make build-mac
+make build-windows
 ```
 
-3. 构建特定平台：
-```bash
-# macOS Intel
-wails build -platform darwin/amd64
-
-# macOS Apple Silicon
-wails build -platform darwin/arm64
-
-# Windows
-wails build -platform windows/amd64
-```
 
 ### 构建输出
 
 构建产物位于 `./build/bin/` 目录：
 
-- **macOS Intel**: `rootify-amd64.app` (完整的应用包)
-- **macOS Apple Silicon**: `rootify-arm64.app` (完整的应用包)
-- **Windows**: `rootify-amd64.exe` (直接可执行文件)
+- **macOS Universal**: `rootify.app` (完整的应用包)
+- **Windows**: `rootify.exe` (直接可执行文件)
 
 ### 平台支持
 

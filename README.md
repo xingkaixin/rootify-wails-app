@@ -1,19 +1,110 @@
-# README
+# Rootify - 金融词根翻译器
 
-## About
+一个基于 Wails 构建的跨平台桌面应用，用于金融术语的词根翻译和文本分析。
 
-This is the official Wails Vue-TS template.
+## 功能特性
 
-You can configure the project by editing `wails.json`. More information about the project settings can be found
-here: https://wails.io/docs/reference/project-config
+- 🔤 中文金融词根翻译
+- 📝 文本分词和翻译
+- 💾 SQLite 本地数据库存储
+- 🖥️ 跨平台支持 (macOS, Windows)
+- 🎨 现代化用户界面
 
-## Live Development
+## 构建说明
 
-To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
-server that will provide very fast hot reload of your frontend changes. If you want to develop in a browser
-and have access to your Go methods, there is also a dev server that runs on http://localhost:34115. Connect
-to this in your browser, and you can call your Go code from devtools.
+### 前置依赖
 
-## Building
+- **Go 1.23+** - [下载地址](https://golang.org/dl/)
+- **Wails CLI** - `go install github.com/wailsapp/wails/v2/cmd/wails@latest`
+- **Bun** - [安装指南](https://bun.sh/)
 
-To build a redistributable, production mode package, use `wails build`.
+### 快速构建
+
+#### 方法一：使用构建脚本（推荐）
+
+**macOS/Linux:**
+```bash
+./build.sh
+```
+
+**Windows:**
+```cmd
+build-windows.bat
+```
+
+#### 方法二：手动构建
+
+1. 安装前端依赖：
+```bash
+cd frontend && bun install && cd ..
+```
+
+2. 构建所有平台：
+```bash
+wails build -platform all
+```
+
+3. 构建特定平台：
+```bash
+# macOS Intel
+wails build -platform darwin/amd64
+
+# macOS Apple Silicon
+wails build -platform darwin/arm64
+
+# Windows
+wails build -platform windows/amd64
+```
+
+### 构建输出
+
+构建产物位于 `./build/bin/` 目录：
+
+- **macOS Intel**: `rootify-amd64.app` (完整的应用包)
+- **macOS Apple Silicon**: `rootify-arm64.app` (完整的应用包)
+- **Windows**: `rootify-amd64.exe` (直接可执行文件)
+
+### 平台支持
+
+| 平台 | 架构 | 状态 |
+|------|------|------|
+| macOS | x86_64 (Intel) | ✅ 支持 |
+| macOS | arm64 (Apple Silicon) | ✅ 支持 |
+| Windows | x64 | ✅ 支持 |
+
+### 数据库位置
+
+应用数据存储在平台标准位置：
+
+- **macOS**: `~/Library/Application Support/rootify/rootify.db`
+- **Windows**: `%APPDATA%/rootify/rootify.db`
+- **Linux**: `~/.config/rootify/rootify.db`
+
+## 开发模式
+
+运行开发服务器：
+```bash
+wails dev
+```
+
+这将启动：
+- 前端开发服务器 (Vite)
+- 后端 Go 服务
+- 热重载支持
+
+## 项目结构
+
+```
+├── app.go              # Go 后端主逻辑
+├── main.go             # 应用入口
+├── wails.json          # Wails 配置
+├── frontend/           # 前端代码
+│   ├── src/           # React 组件
+│   ├── package.json   # 前端依赖
+│   └── vite.config.ts # Vite 配置
+└── build/             # 构建输出目录
+```
+
+## 许可证
+
+MIT License

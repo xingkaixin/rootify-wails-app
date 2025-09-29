@@ -10,5 +10,8 @@
   "author": {
     "name": "XingKaiXin",
     "email": "xingkaixin@gmail.com"
-  }
+  },
+  "platforms": ["darwin/amd64", "darwin/arm64", "windows/amd64"],
+  "outputType": "archive",
+  "buildDirectory": "./build"
 }

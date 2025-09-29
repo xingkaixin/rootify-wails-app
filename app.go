@@ -4,7 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"unicode/utf8"
@@ -285,5 +287,39 @@ func min(a, b int) int {
 }
 
 func getAppDataDir() (string, error) {
-	return ".", nil
+	var appDataDir string
+
+	switch runtime.GOOS {
+	case "darwin":
+		// macOS: ~/Library/Application Support/rootify/
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return "", fmt.Errorf("failed to get home directory: %v", err)
+		}
+		appDataDir = filepath.Join(homeDir, "Library", "Application Support", "rootify")
+	case "windows":
+		// Windows: %APPDATA%/rootify/
+		appData := os.Getenv("APPDATA")
+		if appData == "" {
+			return "", fmt.Errorf("APPDATA environment variable not set")
+		}
+		appDataDir = filepath.Join(appData, "rootify")
+	case "linux":
+		// Linux: ~/.config/rootify/
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return "", fmt.Errorf("failed to get home directory: %v", err)
+		}
+		appDataDir = filepath.Join(homeDir, ".config", "rootify")
+	default:
+		return "", fmt.Errorf("unsupported platform: %s", runtime.GOOS)
+	}
+
+	// Create directory if it doesn't exist
+	err := os.MkdirAll(appDataDir, 0755)
+	if err != nil {
+		return "", fmt.Errorf("failed to create app data directory: %v", err)
+	}
+
+	return appDataDir, nil
 }

@@ -1,4 +1,4 @@
-import * as GoAPI from "../../wailsjs/go/main/App";
+import * as GoAPI from "../../wailsjs/go/app/App";
 import type { SegmentationResult } from "../components/shared/types";
 
 export async function getAllRoots(): Promise<Record<string, string>> {

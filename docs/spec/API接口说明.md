@@ -10,9 +10,9 @@
 
 #### 1.1 GetAllRoots - 获取所有词根
 
-**文件位置**: `app.go`
+**文件位置**: `backend/app/app.go`
 
-**TypeScript定义**: `frontend/wailsjs/go/main/App.d.ts:12`
+**TypeScript定义**: `frontend/wailsjs/go/app/App.d.ts:12`
 ```typescript
 export function GetAllRoots(): Promise<Record<string, string>>;
 ```
@@ -59,7 +59,7 @@ rows, err := a.db.Query("SELECT chinese, english FROM word_roots ORDER BY chines
 
 **文件位置**: `app.go`
 
-**TypeScript定义**: `frontend/wailsjs/go/main/App.d.ts:4`
+**TypeScript定义**: `frontend/wailsjs/go/app/App.d.ts:4`
 ```typescript
 export function AddRoot(arg1:string, arg2:string): Promise<void>;
 ```
@@ -108,7 +108,7 @@ _, err := a.db.Exec(
 
 **文件位置**: `app.go`
 
-**TypeScript定义**: `frontend/wailsjs/go/main/App.d.ts:8`
+**TypeScript定义**: `frontend/wailsjs/go/app/App.d.ts:8`
 ```typescript
 export function DeleteRoot(arg1:string): Promise<void>;
 ```
@@ -152,7 +152,7 @@ _, err := a.db.Exec("DELETE FROM word_roots WHERE chinese = ?", chinese)
 
 **文件位置**: `app.go`
 
-**TypeScript定义**: `frontend/wailsjs/go/main/App.d.ts:6`
+**TypeScript定义**: `frontend/wailsjs/go/app/App.d.ts:6`
 ```typescript
 export function ClearAllRoots(): Promise<void>;
 ```
@@ -195,7 +195,7 @@ _, err := a.db.Exec("DELETE FROM word_roots")
 
 **文件位置**: `app.go`
 
-**TypeScript定义**: `frontend/wailsjs/go/main/App.d.ts:14`
+**TypeScript定义**: `frontend/wailsjs/go/app/App.d.ts:14`
 ```typescript
 export function ImportRoots(arg1:Record<string, string>): Promise<void>;
 ```
@@ -243,7 +243,7 @@ return tx.Commit()
 
 **文件位置**: `app.go`
 
-**TypeScript定义**: `frontend/wailsjs/go/main/App.d.ts:10`
+**TypeScript定义**: `frontend/wailsjs/go/app/App.d.ts:10`
 ```typescript
 export function ExportRoots(): Promise<string>;
 ```
@@ -294,7 +294,7 @@ for rows.Next() {
 
 **文件位置**: `app.go`
 
-**TypeScript定义**: `frontend/wailsjs/go/main/App.d.ts:16`
+**TypeScript定义**: `frontend/wailsjs/go/app/App.d.ts:16`
 ```typescript
 export function SegmentText(arg1:string): Promise<Array<Record<string, any>>>;
 ```
@@ -352,7 +352,7 @@ export async function segmentText(text: string): Promise<SegmentationResult[]> {
 
 **文件位置**: `app.go`
 
-**TypeScript定义**: `frontend/wailsjs/go/main/App.d.ts:18`
+**TypeScript定义**: `frontend/wailsjs/go/app/App.d.ts:18`
 ```typescript
 export function TranslateText(arg1:string): Promise<string>;
 ```

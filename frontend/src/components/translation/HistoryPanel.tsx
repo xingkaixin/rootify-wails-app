@@ -8,12 +8,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 
 interface HistoryPanelProps {
   onSelectHistory: (chineseText: string, englishText: string) => void;
+  refreshTrigger?: number; // 外部刷新触发器
 }
 
-export function HistoryPanel({ onSelectHistory }: HistoryPanelProps) {
+export function HistoryPanel({ onSelectHistory, refreshTrigger }: HistoryPanelProps) {
   const [history, setHistory] = useState<TranslationHistoryItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0); // 用于强制刷新
+  const [internalRefreshTrigger, setInternalRefreshTrigger] = useState(0); // 内部强制刷新
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const loadHistory = async () => {
@@ -38,7 +39,7 @@ export function HistoryPanel({ onSelectHistory }: HistoryPanelProps) {
       await clearTranslationHistory();
       // 直接清空本地状态并强制刷新
       setHistory([]);
-      setRefreshTrigger(prev => prev + 1);
+      setInternalRefreshTrigger(prev => prev + 1);
       setShowClearConfirm(false);
     } catch (error) {
       console.error("Failed to clear history:", error);
@@ -56,7 +57,7 @@ export function HistoryPanel({ onSelectHistory }: HistoryPanelProps) {
 
   useEffect(() => {
     loadHistory();
-  }, [refreshTrigger]);
+  }, [internalRefreshTrigger, refreshTrigger]); // 监听内部和外部刷新触发器
 
   return (
     <Card className="h-full">

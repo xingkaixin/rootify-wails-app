@@ -17,47 +17,15 @@ interface TranslationPageProps {
 export function TranslationPage({ unifiedInput, tableData, onStateUpdate }: TranslationPageProps) {
 
   const { copiedIndex, copyText } = useClipboard();
+  const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0); // 历史刷新触发器
 
   // 直接实现状态管理逻辑，替代useTranslation hook
-  const handleUnifiedInput = async (value: string) => {
+  const handleUnifiedInput = (value: string) => {
     onStateUpdate({ unifiedInput: value });
-
-    if (value.trim()) {
-      const lines = value
-        .split("\n")
-        .map((line) => line.trim())
-        .filter((line) => line.length > 0);
-
-      // 即时翻译：输入中文后立即自动翻译
-      const translatedData = await Promise.all(
-        lines.map(async (line) => {
-          if (line.trim()) {
-            const translated = await translateText(line);
-
-            // 只有在翻译完全成功时才保存历史记录
-            if (translated && line.trim()) {
-              const complete = await isTranslationComplete(line);
-              if (complete) {
-                saveTranslationHistory(line.trim(), translated);
-              }
-            }
-
-            return {
-              chinese: line,
-              english: translated,
-            };
-          }
-          return { chinese: line, english: "" };
-        })
-      );
-
-      onStateUpdate({ tableData: translatedData });
-    } else {
-      onStateUpdate({ tableData: [] });
-    }
+    // 不再自动创建表格行，只在翻译时创建
   };
 
-  const handleTableEdit = async (index: number, chinese: string) => {
+  const handleTableEdit = (index: number, chinese: string) => {
     if (index < 0 || index >= tableData.length) return;
 
     const newData = [...tableData];
@@ -65,22 +33,7 @@ export function TranslationPage({ unifiedInput, tableData, onStateUpdate }: Tran
     if (!row) return;
 
     row.chinese = chinese;
-
-    // 即时翻译：编辑中文后立即自动翻译
-    if (chinese.trim()) {
-      const translated = await translateText(chinese);
-      row.english = translated;
-
-      // 只有在翻译完全成功时才保存历史记录
-      if (translated && chinese.trim()) {
-        const complete = await isTranslationComplete(chinese);
-        if (complete) {
-          saveTranslationHistory(chinese.trim(), translated);
-        }
-      }
-    } else {
-      row.english = "";
-    }
+    // 不再自动翻译，保留英文为空或保持原值
 
     onStateUpdate({ tableData: newData });
   };
@@ -99,20 +52,48 @@ export function TranslationPage({ unifiedInput, tableData, onStateUpdate }: Tran
   };
 
   const handleBatchTranslate = async () => {
+    if (!unifiedInput.trim()) {
+      return;
+    }
+
     try {
+      // 从输入文本创建表格行
+      const lines = unifiedInput
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
+
+      // 执行翻译
       const translatedData = await Promise.all(
-        tableData.map(async (row) => {
-          if (row.chinese.trim()) {
-            const translated = await translateText(row.chinese);
+        lines.map(async (line) => {
+          if (line.trim()) {
+            const translated = await translateText(line);
+
+            // 只有在翻译完全成功时才保存历史记录
+            if (translated && line.trim()) {
+              const complete = await isTranslationComplete(line);
+              if (complete) {
+                await saveTranslationHistory(line.trim(), translated);
+                // 保存后触发历史刷新
+                setHistoryRefreshTrigger(prev => prev + 1);
+              }
+            }
+
             return {
-              ...row,
+              chinese: line,
               english: translated,
             };
           }
-          return row;
+          return { chinese: line, english: "" };
         })
       );
-      onStateUpdate({ tableData: translatedData });
+
+      // 将翻译结果追加到现有表格数据，而不是替换
+      const newTableData = [...tableData, ...translatedData];
+      onStateUpdate({
+        tableData: newTableData,
+        unifiedInput: "" // 清空输入区域
+      });
     } catch (error) {
       console.error("Failed to translate text:", error);
     }
@@ -185,15 +166,15 @@ export function TranslationPage({ unifiedInput, tableData, onStateUpdate }: Tran
           unifiedInput={unifiedInput}
           onUnifiedInputChange={handleUnifiedInput}
           onBatchTranslate={handleBatchTranslate}
-          onAddRow={addRow}
           onReset={reset}
-          hasData={tableData.length > 0}
+          hasData={unifiedInput.trim().length > 0}
         />
 
         <TranslationTable
           tableData={tableData}
           onTableEdit={handleTableEdit}
           onDeleteRow={deleteRow}
+          onAddRow={addRow}
           copiedIndex={copiedIndex}
           onCopyText={copyText}
           onExportTSV={handleExportTSV}
@@ -203,7 +184,10 @@ export function TranslationPage({ unifiedInput, tableData, onStateUpdate }: Tran
       </div>
 
       <div className="lg:col-span-1">
-        <HistoryPanel onSelectHistory={handleSelectHistory} />
+        <HistoryPanel
+          onSelectHistory={handleSelectHistory}
+          refreshTrigger={historyRefreshTrigger}
+        />
       </div>
     </div>
   );

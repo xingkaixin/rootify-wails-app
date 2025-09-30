@@ -1,7 +1,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, FilePlus2 } from "lucide-react";
 import { MixedTranslation } from "../shared/MixedTranslation";
 import type { TableRowData } from "../shared/types";
 
@@ -9,6 +9,7 @@ interface TranslationTableProps {
   tableData: TableRowData[];
   onTableEdit: (index: number, chinese: string) => void;
   onDeleteRow: (index: number) => void;
+  onAddRow: () => void;
   copiedIndex: number | null;
   onCopyText: (text: string, index: number) => void;
   onExportTSV: () => void;
@@ -18,6 +19,7 @@ export function TranslationTable({
   tableData,
   onTableEdit,
   onDeleteRow,
+  onAddRow,
   copiedIndex,
   onCopyText,
   onExportTSV,
@@ -30,14 +32,24 @@ export function TranslationTable({
     <div className="rounded-md border">
       <div className="flex items-center justify-between p-4 border-b bg-muted/50">
         <div className="text-sm font-medium">翻译结果</div>
-        <Button
-          onClick={onExportTSV}
-          variant="default"
-          size="sm"
-        >
-          <Copy className="w-4 h-4 mr-2" />
-          复制到剪贴板
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={onAddRow}
+            variant="outline"
+            size="sm"
+          >
+            <FilePlus2 className="w-4 h-4 mr-2" />
+            添加行
+          </Button>
+          <Button
+            onClick={onExportTSV}
+            variant="default"
+            size="sm"
+          >
+            <Copy className="w-4 h-4 mr-2" />
+            复制到剪贴板
+          </Button>
+        </div>
       </div>
       <Table>
         <TableHeader>

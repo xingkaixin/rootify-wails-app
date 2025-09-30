@@ -87,6 +87,19 @@ func (s *TranslationService) TranslateText(text string) string {
 	return result
 }
 
+// IsTranslationComplete 检查翻译是否完全成功（没有未知词根）
+func (s *TranslationService) IsTranslationComplete(text string) bool {
+	segments := s.SegmentText(text)
+
+	for _, segment := range segments {
+		if segment.IsUnknown {
+			return false
+		}
+	}
+
+	return true
+}
+
 // min 返回两个整数中的较小值
 func min(a, b int) int {
 	if a < b {

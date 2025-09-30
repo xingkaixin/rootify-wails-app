@@ -20,6 +20,8 @@ type App struct {
 	ctx context.Context
 	// 使用仓库模式，消除重复的数据库检查
 	repo *repository.WordRootRepository
+	// 直接存储数据库连接，用于历史记录操作
+	db *sql.DB
 }
 
 // NewApp creates a new App application struct
@@ -56,6 +58,14 @@ func (a *App) initDB() error {
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		);
 		CREATE INDEX IF NOT EXISTS idx_chinese ON word_roots(chinese);
+
+		CREATE TABLE IF NOT EXISTS translation_history (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			chinese_text TEXT NOT NULL,
+			english_text TEXT NOT NULL,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		);
+		CREATE INDEX IF NOT EXISTS idx_history_created_at ON translation_history(created_at DESC);
 	`
 
 	_, err = db.Exec(createTableSQL)
@@ -65,6 +75,7 @@ func (a *App) initDB() error {
 
 	// 初始化仓库
 	a.repo = repository.NewWordRootRepository(db)
+	a.db = db
 
 	return nil
 }
@@ -158,6 +169,79 @@ func (a *App) TranslateText(text string) (string, error) {
 
 	translationService := service.NewTranslationService(roots)
 	return translationService.TranslateText(text), nil
+}
+
+// SaveTranslationHistory saves a translation record to history
+func (a *App) SaveTranslationHistory(chineseText, englishText string) error {
+	if a.db == nil {
+		return fmt.Errorf("database not initialized")
+	}
+
+	// 简单的插入操作，无需复杂逻辑
+	_, err := a.db.Exec(
+		"INSERT INTO translation_history (chinese_text, english_text) VALUES (?, ?)",
+		chineseText, englishText,
+	)
+	return err
+}
+
+// GetTranslationHistory returns all translation history records
+func (a *App) GetTranslationHistory() ([]map[string]any, error) {
+	if a.db == nil {
+		return nil, fmt.Errorf("database not initialized")
+	}
+
+	rows, err := a.db.Query(
+		"SELECT id, chinese_text, english_text, created_at FROM translation_history ORDER BY created_at DESC LIMIT 100",
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var history []map[string]any
+	for rows.Next() {
+		var id int
+		var chineseText, englishText, createdAt string
+
+		if err := rows.Scan(&id, &chineseText, &englishText, &createdAt); err != nil {
+			return nil, err
+		}
+
+		history = append(history, map[string]any{
+			"id":          id,
+			"chineseText": chineseText,
+			"englishText": englishText,
+			"createdAt":   createdAt,
+		})
+	}
+
+	return history, nil
+}
+
+// ClearTranslationHistory clears all translation history records
+func (a *App) ClearTranslationHistory() error {
+	if a.db == nil {
+		return fmt.Errorf("database not initialized")
+	}
+
+	_, err := a.db.Exec("DELETE FROM translation_history")
+	return err
+}
+
+// IsTranslationComplete 检查翻译是否完全成功（没有未知词根）
+func (a *App) IsTranslationComplete(text string) (bool, error) {
+	if a.repo == nil {
+		return false, fmt.Errorf("repository not initialized")
+	}
+
+	roots, err := a.repo.GetAll()
+	if err != nil {
+		return false, err
+	}
+
+	translationService := service.NewTranslationService(roots)
+	return translationService.IsTranslationComplete(text), nil
 }
 
 // getAppDataDir 获取应用数据目录（跨平台）

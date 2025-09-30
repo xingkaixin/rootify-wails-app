@@ -394,9 +394,216 @@ export async function translateText(text: string): Promise<string> {
 2. 将分词结果用下划线连接
 3. 未知字符保持原样
 
-### 3. 应用生命周期接口
+### 3. 翻译历史接口
 
-#### 3.1 startup - 应用启动初始化
+#### 3.1 SaveTranslationHistory - 保存翻译历史
+
+**文件位置**: `backend/app/app.go`
+
+**TypeScript定义**: `frontend/wailsjs/go/app/App.d.ts:12`
+```typescript
+export function SaveTranslationHistory(arg1:string, arg2:string): Promise<void>;
+```
+
+**Go方法签名**:
+```go
+func (a *App) SaveTranslationHistory(chineseText, englishText string) error
+```
+
+**功能描述**: 保存翻译记录到历史数据库。
+
+**参数**:
+- `chineseText: string` - 中文原文
+- `englishText: string` - 英文翻译结果
+
+**返回值**:
+- `Promise<void>` - 成功时无返回值
+
+**调用示例** (前端 `services/api.ts`):
+```typescript
+await saveTranslationHistory("交易日期", "trade_date");
+```
+
+**前端服务层封装** (`services/api.ts`):
+```typescript
+export async function saveTranslationHistory(chineseText: string, englishText: string): Promise<void> {
+  try {
+    await GoAPI.SaveTranslationHistory(chineseText, englishText);
+  } catch (error) {
+    console.error("Failed to save translation history:", error);
+    // 不抛出错误，历史记录保存失败不应影响主要功能
+  }
+}
+```
+
+**后端实现关键代码**:
+```go
+_, err := a.db.Exec(
+    "INSERT INTO translation_history (chinese_text, english_text) VALUES (?, ?)",
+    chineseText, englishText,
+)
+```
+
+#### 3.2 GetTranslationHistory - 获取翻译历史
+
+**文件位置**: `backend/app/app.go`
+
+**TypeScript定义**: `frontend/wailsjs/go/app/App.d.ts:10`
+```typescript
+export function GetTranslationHistory(): Promise<Array<Record<string, any>>>;
+```
+
+**Go方法签名**:
+```go
+func (a *App) GetTranslationHistory() ([]map[string]any, error)
+```
+
+**功能描述**: 获取所有翻译历史记录，按时间倒序排列。
+
+**参数**: 无
+
+**返回值**:
+- `Promise<Array<Record<string, any>>>` - 历史记录数组
+
+**返回数据结构**:
+```typescript
+interface TranslationHistoryItem {
+    id: number;          // 记录ID
+    chineseText: string; // 中文原文
+    englishText: string; // 英文翻译
+    createdAt: string;   // 创建时间
+}
+```
+
+**调用示例** (前端 `services/api.ts`):
+```typescript
+const history = await getTranslationHistory();
+// history = [
+//   { id: 1, chineseText: "交易日期", englishText: "trade_date", createdAt: "2024-01-01 10:00:00" },
+//   { id: 2, chineseText: "区块链", englishText: "blockchain", createdAt: "2024-01-01 09:30:00" }
+// ]
+```
+
+**前端服务层封装** (`services/api.ts`):
+```typescript
+export async function getTranslationHistory(): Promise<TranslationHistoryItem[]> {
+  try {
+    const history = await GoAPI.GetTranslationHistory();
+    return (history || []) as TranslationHistoryItem[];
+  } catch (error) {
+    console.error("Failed to get translation history:", error);
+    return [];
+  }
+}
+```
+
+**后端实现关键代码**:
+```go
+rows, err := a.db.Query(
+    "SELECT id, chinese_text, english_text, created_at FROM translation_history ORDER BY created_at DESC LIMIT 100",
+)
+```
+
+#### 3.3 ClearTranslationHistory - 清空翻译历史
+
+**文件位置**: `backend/app/app.go`
+
+**TypeScript定义**: `frontend/wailsjs/go/app/App.d.ts:4`
+```typescript
+export function ClearTranslationHistory(): Promise<void>;
+```
+
+**Go方法签名**:
+```go
+func (a *App) ClearTranslationHistory() error
+```
+
+**功能描述**: 清空所有翻译历史记录。
+
+**参数**: 无
+
+**返回值**:
+- `Promise<void>` - 成功时无返回值
+
+**调用示例** (前端 `services/api.ts`):
+```typescript
+await clearTranslationHistory();
+```
+
+**前端服务层封装** (`services/api.ts`):
+```typescript
+export async function clearTranslationHistory(): Promise<void> {
+  try {
+    await GoAPI.ClearTranslationHistory();
+  } catch (error) {
+    console.error("Failed to clear translation history:", error);
+    throw error;
+  }
+}
+```
+
+**后端实现关键代码**:
+```go
+_, err := a.db.Exec("DELETE FROM translation_history")
+```
+
+#### 3.4 IsTranslationComplete - 检查翻译完整性
+
+**文件位置**: `backend/app/app.go`
+
+**TypeScript定义**: `frontend/wailsjs/go/app/App.d.ts:8`
+```typescript
+export function IsTranslationComplete(arg1:string): Promise<boolean>;
+```
+
+**Go方法签名**:
+```go
+func (a *App) IsTranslationComplete(text string) (bool, error)
+```
+
+**功能描述**: 检查翻译是否完全成功（没有未知词根）。
+
+**参数**:
+- `text: string` - 要检查的中文文本
+
+**返回值**:
+- `Promise<boolean>` - 是否完全翻译成功
+
+**调用示例** (前端 `services/api.ts`):
+```typescript
+const complete = await isTranslationComplete("交易日期");
+// complete = true
+```
+
+**前端服务层封装** (`services/api.ts`):
+```typescript
+export async function isTranslationComplete(text: string): Promise<boolean> {
+  try {
+    const isComplete = await GoAPI.IsTranslationComplete(text);
+    return isComplete || false;
+  } catch (error) {
+    console.error("Failed to check translation completeness:", error);
+    return false;
+  }
+}
+```
+
+**后端实现关键代码** (`backend/service/translation.go`):
+```go
+func (s *TranslationService) IsTranslationComplete(text string) bool {
+    segments := s.SegmentText(text)
+    for _, segment := range segments {
+        if segment.IsUnknown {
+            return false
+        }
+    }
+    return true
+}
+```
+
+### 4. 应用生命周期接口
+
+#### 4.1 startup - 应用启动初始化
 
 **文件位置**: `app.go`
 

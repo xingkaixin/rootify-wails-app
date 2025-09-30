@@ -76,3 +76,49 @@ export async function exportRoots(): Promise<string> {
     throw error;
   }
 }
+
+// Translation History API
+export interface TranslationHistoryItem {
+  id: number;
+  chineseText: string;
+  englishText: string;
+  createdAt: string;
+}
+
+export async function saveTranslationHistory(chineseText: string, englishText: string): Promise<void> {
+  try {
+    await GoAPI.SaveTranslationHistory(chineseText, englishText);
+  } catch (error) {
+    console.error("Failed to save translation history:", error);
+    // 不抛出错误，历史记录保存失败不应影响主要功能
+  }
+}
+
+export async function getTranslationHistory(): Promise<TranslationHistoryItem[]> {
+  try {
+    const history = await GoAPI.GetTranslationHistory();
+    return (history || []) as TranslationHistoryItem[];
+  } catch (error) {
+    console.error("Failed to get translation history:", error);
+    return [];
+  }
+}
+
+export async function clearTranslationHistory(): Promise<void> {
+  try {
+    await GoAPI.ClearTranslationHistory();
+  } catch (error) {
+    console.error("Failed to clear translation history:", error);
+    throw error;
+  }
+}
+
+export async function isTranslationComplete(text: string): Promise<boolean> {
+  try {
+    const isComplete = await GoAPI.IsTranslationComplete(text);
+    return isComplete || false;
+  } catch (error) {
+    console.error("Failed to check translation completeness:", error);
+    return false;
+  }
+}
